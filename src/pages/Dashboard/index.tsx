@@ -23,28 +23,45 @@ const pageTarget = process.env.REACT_APP_DETAILED_DASHBOARD ? '_blank' : '';
 
 const Dashboard: React.FC = () => {
   const [lightStatus, setLightStatus] = useState(false);
+  const [doorStatus, setdoorStatus] = useState(false);
   const [windowValue, setWindowValue] = useState(10);
   const [temperature, setTemperature] = useState(10);
   const [humidity, setHumidity] = useState(10);
   const [air, setAir] = useState('Bom');
-
-  const windowSlider = document.getElementById(
-    'windowSlider',
-  ) as HTMLInputElement;
+  const [debounceTimeout, setDebounceTimeout] = useState<number | null>(null); // Cambiar tipo a `number | null`
 
   const clickHandler = useCallback(async () => {
     setLightStatus(!lightStatus);
     mqttClient.publish('/light', `${Number(!lightStatus)}`);
   }, [lightStatus]);
 
-  const dragHandler = useCallback(async (e) => {
-    const windowLevel = e.target.value;
-    mqttClient.publish('/window', `${Number(windowLevel)}`);
-  }, []);
+  // Maneja el cambio en el slider
+  const handleSliderChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const newValue = parseInt(e.target.value, 10);
+      setWindowValue(newValue);
 
-  const openDoorHandler = useCallback(async (e) => {
-    mqttClient.publish('/door', '1');
-  }, []);
+      // Si hay un timeout previo, lo cancela
+      if (debounceTimeout) {
+        clearTimeout(debounceTimeout);
+      }
+
+      // Publica el valor con un pequeño retraso (debounce)
+      const newTimeout = window.setTimeout(() => {
+        // eslint-disable-next-line no-console
+        console.log(`Publicando al MQTT: ${newValue}`);
+        mqttClient.publish('/window', `${newValue}`);
+      }, 300); // Retraso de 300ms para evitar publicaciones excesivas
+
+      setDebounceTimeout(newTimeout);
+    },
+    [debounceTimeout],
+  );
+
+  const openDoorHandler = useCallback(async () => {
+    setdoorStatus(!doorStatus);
+    mqttClient.publish('/door', `${Number(!doorStatus)}`);
+  }, [doorStatus]);
 
   useEffect(() => {
     const handleNewMessage = (topic: string, message: Buffer): void => {
@@ -61,13 +78,13 @@ const Dashboard: React.FC = () => {
           else if (Number(value) > 0.66) setAir('Ruim');
           else setAir('Bom');
           break;
-        case '/light':
-          setLightStatus(value === '1');
-          break;
-        case '/window':
-          setWindowValue(parseInt(value, 10));
-          if (windowSlider) windowSlider.value = value;
-          break;
+        // case '/light':
+        //   setLightStatus(value === '1');
+        //   break;
+        // case '/window':
+        //   setWindowValue(parseInt(value, 10));
+        //   if (windowSlider) windowSlider.value = value;
+        //   break;
         default:
           break;
       }
@@ -91,11 +108,14 @@ const Dashboard: React.FC = () => {
       if (response.data) setLightStatus(!!response.data);
       else setLightStatus(false);
     });
+    // Inicializa el valor del slider desde la API
     api.get('/window').then((response) => {
-      if (response.data) setWindowValue(parseInt(response.data, 10));
-      if (windowSlider) windowSlider.value = windowValue.toString();
+      if (response.data) {
+        const initialValue = parseInt(response.data, 10);
+        setWindowValue(initialValue);
+      }
     });
-  }, [windowValue, windowSlider]);
+  }, []);
 
   return (
     <>
@@ -103,7 +123,7 @@ const Dashboard: React.FC = () => {
         <Header>
           <Link to="/">
             <FiChevronLeft size={20} />
-            Sair
+            Salir
           </Link>
         </Header>
         <div id="logo">
@@ -148,12 +168,16 @@ const Dashboard: React.FC = () => {
 
           <Control>
             <section>
-              <button type="submit" id="door" onClick={openDoorHandler}>
+              <ToggleButton
+                value="check"
+                disableRipple
+                selected={doorStatus}
+                onChange={openDoorHandler}
+              >
                 <RiDoorLockBoxLine size={50} />
-              </button>
+              </ToggleButton>
               <p>Fechadura</p>
             </section>
-
             <section>
               <ToggleButton
                 value="check"
@@ -174,8 +198,17 @@ const Dashboard: React.FC = () => {
                   max="100"
                   step="10"
                   className="slider"
-                  defaultValue={windowValue}
-                  onMouseUp={dragHandler}
+                  value={windowValue} // Usa `value` en lugar de `defaultValue`
+                  onChange={handleSliderChange} // Actualiza el estado al arrastrar
+                  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+                  // onChange={(e) => {
+                  //   // eslint-disable-next-line no-console
+                  //   console.log('Cambiando valor del slider:', e.target.value);
+                  //   setWindowValue(parseInt(e.target.value, 10));
+                  // }}
+                  // onMouseUp={handleSliderRelease} // Publica el valor al soltar
+                  // eslint-disable-next-line no-console, @typescript-eslint/explicit-function-return-type
+                  // onMouseUp={() => console.log('Evento onMouseUp disparado')}
                 />
               </Slider>
               <p>Cortinas</p>
