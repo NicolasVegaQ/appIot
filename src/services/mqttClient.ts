@@ -19,7 +19,7 @@ mqttClient.on('connect', () => {
 */
 
 // // export default mqttClient;
-// import mqtt from 'mqtt';
+// import mqtt from 'mqtt'd;
 // // Define el token directamente
 // const mqttToken =
 //   'mqtt://stripebraid752:fNRdxQZ1avTGWgYh@stripebraid752.cloud.shiftr.io';
