@@ -28,7 +28,7 @@ const Dashboard: React.FC = () => {
   const [temperature, setTemperature] = useState(10);
   const [humidity, setHumidity] = useState(10);
   const [air, setAir] = useState('Bom');
-  const [debounceTimeout, setDebounceTimeout] = useState<number | null>(null); // Cambiar tipo a `number | null`
+  const [debounceTimeout, setDebounceTimeout] = useState<number | null>(null); // Cambiar tipo a d`number | null`
 
   const clickHandler = useCallback(async () => {
     setLightStatus(!lightStatus);

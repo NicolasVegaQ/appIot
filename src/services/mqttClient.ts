@@ -50,7 +50,7 @@ const mqttClient = mqtt.connect('wss://stripebraid752.cloud.shiftr.io', {
   clientId: 'dashboard', // Identificador único
 });
 
-// Evento al conectar exitosamente
+// Evento al conectar exitosamente ds
 mqttClient.on('connect', () => {
   // eslint-disable-next-line no-console
   console.log('Conexión exitosa al broker MQTT');
