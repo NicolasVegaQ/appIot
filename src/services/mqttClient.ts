@@ -56,8 +56,9 @@ mqttClient.on('connect', () => {
   console.log('Conexión exitosa al broker MQTT');
   mqttClient.subscribe('/temperature');
   mqttClient.subscribe('/humidity');
-  // mqttClient.subscribe('/window');
-  // mqttClient.subscribe('/light');
+  mqttClient.subscribe('/window');
+  mqttClient.subscribe('/light');
+  mqttClient.subscribe('/door');
   mqttClient.subscribe('/air');
 });
 

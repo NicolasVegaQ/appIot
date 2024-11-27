@@ -78,14 +78,18 @@ const Dashboard: React.FC = () => {
           else if (Number(value) > 0.66) setAir('Ruim');
           else setAir('Bom');
           break;
-        // case '/light':
-        //   setLightStatus(value === '1');
-        //   break;
-        // case '/window':
-        //   setWindowValue(parseInt(value, 10));
-        //   if (windowSlider) windowSlider.value = value;
-        //   break;
+        case '/light':
+          setLightStatus(value === '1');
+          break;
+        case '/window':
+          setWindowValue(parseInt(value, 10)); // Actualiza el estado del slider
+          break;
+        case '/door':
+          setdoorStatus(value === '1'); // Actualiza el estado de door
+          break;
         default:
+          // eslint-disable-next-line no-console
+          console.warn(`Tópico desconocido: ${topic}`);
           break;
       }
     };
